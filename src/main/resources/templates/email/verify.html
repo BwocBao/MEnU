@@ -1,0 +1,48 @@
+<!doctype html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Verify your account</title>
+</head>
+<body style="margin:0; padding:0; background:#f4f4f5;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f4f5; padding:20px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px; background:#ffffff; border-radius:8px; overflow:hidden; font-family:Arial, sans-serif;">
+                <tr>
+                    <td style="padding:24px; text-align:center; background:#1f2937; color:#ffffff;">
+                        <h1 style="margin:0; font-size:20px;">Xác thực tài khoản MEnU</h1>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:24px; color:#111827; font-size:14px; line-height:1.5;">
+                        <p>Chào <strong th:text="${fullname}"></strong>,</p>
+                        <p>Cảm ơn bạn đã đăng ký. Nhấn nút bên dưới để xác thực tài khoản:</p>
+
+                        <p style="text-align:center; margin:24px 0;">
+                            <a  th:href="${verifyLink}" target="_blank"
+                               style="display:inline-block; padding:12px 20px; border-radius:6px; text-decoration:none; background:#2563eb; color:#fff; font-weight:bold;">
+                                Xác thực tài khoản
+                            </a>
+                        </p>
+
+                        <hr style="border:none; border-top:1px solid #e6e6e9; margin:20px 0;">
+
+                        <p style="font-size:12px; color:#6b7280;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="padding:16px; text-align:center; font-size:12px; color:#9ca3af;">
+                        © 2025 Bwoc Bảo. All rights reserved.
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
