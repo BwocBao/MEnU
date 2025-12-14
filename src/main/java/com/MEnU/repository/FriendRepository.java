@@ -15,15 +15,20 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
         SELECT f FROM Friend f
         WHERE f.status = 'accepted'
         AND (f.user.id = :userId OR f.friendUser.id = :userId)
+        AND f.user.deletedAt IS NULL
+        AND f.friendUser.deletedAt IS NULL
     """)
     List<Friend> findAllFriendsOfUser(Long userId);
 
     // Kiểm tra 2 user bất kỳ đã tồn tại record hay chưa
     @Query("""
-        SELECT f FROM Friend f 
-        WHERE 
-            (f.user.id = :u1 AND f.friendUser.id = :u2)
-         OR (f.user.id = :u2 AND f.friendUser.id = :u1)
+            SELECT f FROM Friend f\s
+                WHERE (
+                        (f.user.id = :u1 AND f.friendUser.id = :u2)
+                     OR (f.user.id = :u2 AND f.friendUser.id = :u1)
+                      )
+                  AND f.user.deletedAt IS NULL
+                  AND f.friendUser.deletedAt IS NULL
     """)
     Optional<Friend> findRelation(Long u1, Long u2);
 
@@ -32,6 +37,8 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     WHERE f.user.id = :senderId
       AND f.friendUser.id = :currentUserId
       AND f.status = 'pending'
+      AND f.user.deletedAt IS NULL
+      AND f.friendUser.deletedAt IS NULL
 """)
     Optional<Friend> findPendingRequest(Long senderId, Long currentUserId);
 

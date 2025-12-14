@@ -5,11 +5,13 @@ import com.MEnU.dto.request.ChangePasswordRequest;
 import com.MEnU.dto.request.FeedbackRequest;
 import com.MEnU.dto.request.UpdateProfileRequest;
 import com.MEnU.dto.response.*;
+import com.MEnU.entity.User;
 import com.MEnU.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +40,6 @@ public ResponseEntity<?> updateProfile(
         @RequestPart("profile") String profileJson,
         @RequestPart(value = "avatar", required = false) MultipartFile avatar
 ) throws Exception {
-
     ObjectMapper objectMapper = new ObjectMapper();
     UpdateProfileRequest request = objectMapper.readValue(profileJson, UpdateProfileRequest.class);
 
@@ -108,9 +109,32 @@ public ResponseEntity<?> updateProfile(
         return ResponseEntity.ok(ApiResponse.success("User profile", profile));
     }
 
-
+    // để gọi tới xem coi có đăng nhập chưa rồi chuyển qua home thôi
     @GetMapping("/verify")
     public ResponseEntity<?> verifyUser() {
         return  ResponseEntity.ok().body(ApiResponse.success("Verify User"));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteMyAccount(
+            @AuthenticationPrincipal User currentUser
+    ) {
+        userService.deleteMyAccount(currentUser);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Your account has been deleted")
+        );
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(
+            @PathVariable Long userId,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        userService.deleteUser(userId, currentUser);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("User deleted successfully")
+        );
     }
 }

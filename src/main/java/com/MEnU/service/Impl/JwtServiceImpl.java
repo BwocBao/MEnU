@@ -1,8 +1,10 @@
 package com.MEnU.service.Impl;
 
+import com.MEnU.entity.User;
 import com.MEnU.entity.enums.TokenType;
 import com.MEnU.service.JwtService;
 import io.jsonwebtoken.Claims;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -74,6 +76,11 @@ public class JwtServiceImpl implements JwtService {
     public boolean isAccessTokenValid(String token, UserDetails userDetails) {
         try {
             final String username = extractUsernameFromAccess(token);
+            if (userDetails instanceof User user) {
+                if (user.getDeletedAt() != null) {
+                    throw new LockedException("Account has been deleted");
+                }
+            }
             return username.equals(userDetails.getUsername()) && !isTokenExpired(token, TokenType.ACCESS);
         } catch (JwtException | IllegalArgumentException e) {
             return false;

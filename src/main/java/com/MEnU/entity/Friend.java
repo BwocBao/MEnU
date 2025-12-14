@@ -32,4 +32,27 @@ public class Friend extends AbstractEntity {
     @Column(nullable = false)
     private FriendStatus status;//pending,accepted
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public FriendStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(FriendStatus status) {
+        this.status = status;
+    }
+
+    public User getFriendUser() {
+        return friendUser;
+    }
+
+    public void setFriendUser(User friendUser) {
+        this.friendUser = friendUser;
+    }
 }

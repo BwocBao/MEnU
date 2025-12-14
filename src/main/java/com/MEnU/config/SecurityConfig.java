@@ -4,11 +4,12 @@ package com.MEnU.config;
 import com.MEnU.dto.ApiResponse;
 import com.MEnU.security.JwtAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -53,22 +54,32 @@ public class SecurityConfig {
                 // ===== CUSTOM JSON ERROR RESPONSE =====
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> {
-                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            Object secEx = req.getAttribute("SECURITY_EXCEPTION");
+
                             res.setContentType("application/json");
 
-                            ApiResponse<?> body =
-                                    ApiResponse.error("Unauthorized – Token missing or invalid");
-
-                            res.getWriter().write(objectMapper.writeValueAsString(body));
-                        })
-                        .accessDeniedHandler((req, res, e) -> {
-                            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            res.setContentType("application/json");
-
-                            ApiResponse<?> body =
-                                    ApiResponse.error("Forbidden – You do not have permission to access this resource");
-
-                            res.getWriter().write(objectMapper.writeValueAsString(body));
+                            if (secEx instanceof LockedException) {
+                                res.setStatus(403);
+                                res.getWriter().write(
+                                        objectMapper.writeValueAsString(
+                                                ApiResponse.error("Account has been deleted")
+                                        )
+                                );
+                            } else if (secEx instanceof DisabledException) {
+                                res.setStatus(403);
+                                res.getWriter().write(
+                                        objectMapper.writeValueAsString(
+                                                ApiResponse.error("Account is not activated")
+                                        )
+                                );
+                            } else {
+                                res.setStatus(401);
+                                res.getWriter().write(
+                                        objectMapper.writeValueAsString(
+                                                ApiResponse.error("Unauthorized + Token missing or invalid")
+                                        )
+                                );
+                            }
                         })
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -115,8 +126,8 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setUserDetailsService(userDetailsService);//Gắn luật load user của bạn vào hệ thống login của Spring
+        provider.setPasswordEncoder(passwordEncoder());//Nó nói với Spring rằng:So sánh password bằng cách nào?
         return provider;
     }
 

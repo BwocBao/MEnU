@@ -20,8 +20,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -343,13 +345,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<SearchUserResponse> searchUsers(String keyword) {
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByUsername(currentUsername)
+        String currentUsername = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User currentUser = userRepository.findByUsernameAndDeletedAtIsNull(currentUsername)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return userRepository.findByUsernameContainingIgnoreCase(keyword)
+        return userRepository
+                .findByUsernameContainingIgnoreCaseAndDeletedAtIsNull(keyword)
                 .stream()
-                .filter(u -> !u.getId().equals(currentUser.getId()))// CHẶN CHÍNH MÌNH
+                .filter(u -> !u.getId().equals(currentUser.getId())) // chặn chính mình
                 .map(u -> new SearchUserResponse(
                         u.getId(),
                         u.getDisplayName(),
@@ -370,5 +377,32 @@ public class UserServiceImpl implements UserService {
         res.setAvatarURL(user.getAvatarURL());
 
         return res;
+    }
+
+
+
+    @Override
+    public void deleteUser(Long userId, User currentUser) {
+
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Không cho xóa người khác (trừ admin)
+        if (!targetUser.getId().equals(currentUser.getId())) {
+            throw new RuntimeException("You are not allowed to delete this user");
+        }
+
+        userRepository.delete(targetUser);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMyAccount(User currentUser) {
+
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setDeletedAt(LocalDateTime.now());
+        userRepository.save(user);
     }
 }

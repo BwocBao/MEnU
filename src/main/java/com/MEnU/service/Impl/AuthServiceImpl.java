@@ -133,17 +133,18 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException("Token has expired");
         }
 
-        // 3. Lấy user tương ứng
+        // 3. Nếu user đã kích hoạt rồi
         User user = token.getUser();
+        if (user.isEmailVerified()) {
+            throw new ResourceConflictException("User is already verified");
+        }
 
+        // 4. Lấy user tương ứng
         if (user == null) {
             throw new BadRequestException("User not found for this token");
         }
 
-        // 4. Nếu user đã kích hoạt rồi
-        if (user.isEmailVerified()) {
-            throw new ResourceConflictException("User is already verified");
-        }
+
 
         // 5. Kích hoạt user
         user.setEmailVerified(true);
@@ -166,15 +167,15 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (BadCredentialsException e) {
-            throw new UnauthorizedException("Invalid email or password");// 401
+            throw new UnauthorizedException("Invalid username or password");// 401
         } catch (DisabledException e) {
             throw new ForbiddenException("Please verify your email before logging in");// 403
         } catch (LockedException e) {
-            throw new ForbiddenException("Account locked");
+            throw new ForbiddenException("Account has been deleted");
         }
 
-        User user = (User) authentication.getPrincipal();
 
+        User user = (User) authentication.getPrincipal();
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
@@ -188,6 +189,7 @@ public class AuthServiceImpl implements AuthService {
 
         refreshTokenRepository.save(token);
         return new LoginResponse(accessToken, refreshToken, accessExpiredLocal);
+
     }
 
 
@@ -264,6 +266,11 @@ public class AuthServiceImpl implements AuthService {
     public void sendResetPasswordLink(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Email ko tồn tại để gửi link reset password"));
+
+        if(!user.isAccountNonLocked())
+        {
+            throw new ForbiddenException("Account has been deleted");
+        }
         //xóa hết token cũ rồi mới tạo token mới để tránh hacker chặn request lấy token các token chưa sử dụng
         passwordResetTokenRepository.deleteAllByUserId(user.getId());
 

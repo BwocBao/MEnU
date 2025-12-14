@@ -35,6 +35,17 @@ public class User extends AbstractEntity implements UserDetails {
 
     private boolean emailVerified = false;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
     public String getUsername() {
         return username;
     }
@@ -100,7 +111,7 @@ public class User extends AbstractEntity implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserDetails.super.isAccountNonLocked();
+        return this.deletedAt == null;
     }
 
     @Override
