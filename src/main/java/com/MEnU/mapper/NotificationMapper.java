@@ -20,6 +20,13 @@ public class NotificationMapper {
 
         res.setFromUsername(from);
 
+        // người nhận (CỰC KỲ QUAN TRỌNG)
+        res.setToUsername(
+                n.getUser() != null
+                        ? n.getUser().getUsername()
+                        : null
+        );
+
         return res;
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -51,11 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
 
-        } catch (LockedException | DisabledException e) {
-            request.setAttribute("SECURITY_EXCEPTION", e);
-            SecurityContextHolder.clearContext();
-        } catch (JwtException e) {
-            SecurityContextHolder.clearContext();
+        } catch (Exception e) {
+            //security handle
         }
         filterChain.doFilter(request, response);
 

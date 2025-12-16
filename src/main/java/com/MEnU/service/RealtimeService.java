@@ -11,46 +11,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RealtimeService {
 
-    private final ObjectMapper mapper;
+    private final WebSocketHandler webSocketHandler;
 
     // GỬI 1 USER
-    public void sendNotificationToUser(String username, Object payload) {
-
-        try {
-            String json = mapper.writeValueAsString(payload);
-            WebSocketHandler.sendToUser(username, json);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void sendToAUser(String username, Object payload) {
+        webSocketHandler.sendToUser(username, payload);
     }
 
-    public void sendMessageToUser(String username, Object payload) {
-
-        try {
-            String json = mapper.writeValueAsString(payload);
-            WebSocketHandler.sendToUser(username, json);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // gửi cho nhiều user
+    // GỬI NHIỀU USER
     public void sendToUsers(List<String> usernames, Object payload) {
-
-        try {
-            String json = mapper.writeValueAsString(payload);
-
-            for (String username : usernames) {
-                WebSocketHandler.sendToUser(username, json);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (String username : usernames) {
+            webSocketHandler.sendToUser(username, payload);
         }
     }
-
-
-
 }
+
+
+

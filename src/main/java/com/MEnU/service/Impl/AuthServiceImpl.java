@@ -121,7 +121,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public String verify(String tokenValue) {
+    public void verify(String tokenValue) {
         // 1. Lấy token từ database
         VerificationToken token = verificationTokenRepository
                 .findByToken(tokenValue)
@@ -151,9 +151,9 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         // 6. revoke token
-        verificationTokenRepository.delete(token);
+        token.setRevoked(true);
+        verificationTokenRepository.save(token);
 
-        return "Email verified successfully! You can now login.";
     }
 
     @Override

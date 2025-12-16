@@ -103,8 +103,9 @@ public class NotificationServiceImpl implements NotificationService {
                 "sent you a friend request",
                 null
         );
-
-        pushRealtime(receiver, noti);
+        NotificationResponse response = NotificationMapper.toResponse(noti);
+        response.setType("friend");
+        realtimeService.sendToAUser(receiver.getUsername(), response);
     }
 
     // Khi accept lời mời kết bạn → gửi thông báo cho người gửi
@@ -118,8 +119,9 @@ public class NotificationServiceImpl implements NotificationService {
                 "accepted your friend request",
                 null
         );
-
-        pushRealtime(receiver, noti);
+        NotificationResponse response = NotificationMapper.toResponse(noti);
+        response.setType("friend");
+        realtimeService.sendToAUser(receiver.getUsername(), noti);
     }
 
     // ================== HELPER METHODS ===================
@@ -138,16 +140,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         return notificationRepo.save(n);
     }
-
-    private void pushRealtime(User user, Notification notification) {
-        NotificationResponse response = NotificationMapper.toResponse(notification);
-        response.setType("friend");
-        realtimeService.sendNotificationToUser(
-                user.getUsername(),
-                response
-        );
-    }
-
 
 
 }

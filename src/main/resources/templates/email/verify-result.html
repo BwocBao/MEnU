@@ -1,0 +1,47 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Verification Success</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0A1D3C, #0A1D3C);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .card {
+            background: #ffffff;
+            padding: 40px 50px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-width: 420px;
+            width: 100%;
+        }
+        .icon {
+            font-size: 60px;
+            color: #0A1D3C;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin: 0 0 12px 0;
+            color: #0A1D3C;
+        }
+        p {
+            color: #555;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <img th:src="@{/images/logo.jpg}" alt="MEnU Logo" style="width:100px;margin-bottom:20px;"/>
+    <div class="icon" th:text="${icon}">✔</div>
+    <h2 th:text="${title}"></h2>
+    <p th:utext="${message}"></p>
+</div>
+</body>
+</html>

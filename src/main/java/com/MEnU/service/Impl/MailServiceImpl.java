@@ -102,5 +102,13 @@ public class MailServiceImpl implements MailService {
         return templateEngine.process("email/resetPassword", ctx);
     }
 
+    @Override
+    public String buildFeedbackEmail(String username, String email, String message) {
+        Context ctx = new Context();
+        ctx.setVariable("username", username);
+        ctx.setVariable("email", email);
+        ctx.setVariable("mess", message);
+        return templateEngine.process("email/feedback", ctx);
+    }
 
 }

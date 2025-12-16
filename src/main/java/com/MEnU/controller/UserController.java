@@ -8,6 +8,7 @@ import com.MEnU.dto.response.*;
 import com.MEnU.entity.User;
 import com.MEnU.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -68,7 +69,7 @@ public ResponseEntity<?> updateProfile(
     }
 
     @PostMapping("/feedback")
-    public ResponseEntity<?> sendFeedback(@RequestBody FeedbackRequest req) {
+    public ResponseEntity<?> sendFeedback(@Valid @RequestBody FeedbackRequest req) {
         userService.sendFeedback(req);
         return ResponseEntity.ok(ApiResponse.success("Feedback sent successfully"));
     }
@@ -94,7 +95,6 @@ public ResponseEntity<?> updateProfile(
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<SearchUserResponse>>> searchUser(
             @RequestParam String keyword) {
-
         List<SearchUserResponse> users = userService.searchUsers(keyword);
 
         return ResponseEntity.ok(ApiResponse.success("Search user", users));

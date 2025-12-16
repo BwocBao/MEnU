@@ -2,7 +2,13 @@ package com.MEnU.dto.request;
 
 
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResetPasswordRequest {
     private String token;
     @Pattern(
@@ -15,11 +21,5 @@ public class ResetPasswordRequest {
             message = "Password must be at least 8 characters and contain both letters and numbers"
     )
     private String confirmPassword;
-    // getters/setters
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
-    public String getNewPassword() { return newPassword; }
-    public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
-    public String getConfirmPassword() { return confirmPassword; }
-    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
+
 }

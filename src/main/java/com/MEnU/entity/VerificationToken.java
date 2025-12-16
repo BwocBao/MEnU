@@ -20,6 +20,17 @@ public class VerificationToken extends AbstractEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
+    private boolean revoked = false;
+
+    public boolean isRevoked() {
+        return revoked;
+    }
+
+    public void setRevoked(boolean revoked) {
+        this.revoked = revoked;
+    }
+
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiryDate);
     }

@@ -10,7 +10,7 @@ import com.MEnU.entity.User;
 public interface AuthService {
     RegisterResponse register(RegisterRequest registerRequest);
     LoginResponse login(LoginRequest loginRequest);
-    String verify(String token);
+    void verify(String token);
     RefreshTokenResponse refreshToken(String refreshToken);
     void sendResetPasswordLink(String email);
     void resetPassword(String token,String newPassword,String confirmPassword);

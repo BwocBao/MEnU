@@ -2,6 +2,7 @@ package com.MEnU.controller;
 
 import com.MEnU.dto.ApiResponse;
 import com.MEnU.dto.request.CommentRequest;
+import com.MEnU.dto.response.PhotoReactionResponse;
 import com.MEnU.entity.Photo;
 import com.MEnU.entity.User;
 import com.MEnU.service.PhotoService;
@@ -14,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.net.URLConnection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/photos")
@@ -30,6 +32,25 @@ public class PhotoController {
 
         Photo photo = photoService.createPhoto(caption, image);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Created Photo", photo));
+    }
+
+    @GetMapping("/{photoId}")
+    public ResponseEntity<?> getPhoto(@PathVariable Long photoId) {
+        Photo photo=photoService.getAPhoto(photoId);
+        return ResponseEntity.ok().body(ApiResponse.success("Get Photo success",photo));
+    }
+
+
+    @GetMapping("/home")
+    public ResponseEntity<?> getTopPhoto() {
+
+        Photo photo = photoService.getTopPhoto();
+
+        if (photo == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(photo);
     }
 
     @GetMapping("/move")
@@ -55,6 +76,12 @@ public class PhotoController {
     public ResponseEntity<?> deletePhoto(@PathVariable Long id) {
         photoService.deletePhoto(id);
         return ResponseEntity.ok().body(ApiResponse.success("Deleted Photo"+id));
+    }
+
+    @GetMapping("reaction/{photoId}")
+    public ResponseEntity<?> getReactionPhoto(@PathVariable Long photoId) {
+            List<PhotoReactionResponse> photoReactionResponse= photoService.getReactionPhoto(photoId);
+        return ResponseEntity.ok().body(ApiResponse.success("Get Reaction Photo"+photoId, photoReactionResponse));
     }
 
     @GetMapping("/{photoId}/download")

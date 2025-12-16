@@ -50,76 +50,6 @@ public class UserServiceImpl implements UserService {
         this.cloudinaryService = cloudinaryService;
     }
 
-//    @Override
-//    public UpdateProfileRespone updateProfile(UpdateProfileRequest req) {
-//
-//        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-//
-//        User user = userRepository.findByUsername(username)
-//                .orElseThrow(() -> new NotFoundException("User not found"));
-//
-//        // 1. Update username
-//        if (req.getUsername() != null && !req.getUsername().equals(user.getUsername())) {
-//
-//            if (userRepository.existsByUsername(req.getUsername())) {
-//                throw new ResourceConflictException("Username already exists");
-//            }
-//
-//            user.setUsername(req.getUsername());
-//        }
-//
-//        // 2. Update displayName
-//        if (req.getDisplayName() != null) {
-//            user.setDisplayName(req.getDisplayName());
-//        }
-//
-//        // 3. Update avatarURL
-//        if (req.getAvatarURL() != null) {
-//            user.setAvatarURL(req.getAvatarURL());
-//        }
-//
-//        // 4. Update email
-//        if (req.getEmail() != null && !req.getEmail().equals(user.getEmail())) {
-//
-//            if (userRepository.existsByEmail(req.getEmail())) {
-//                throw new ResourceConflictException("Email already exists");
-//            }
-//
-//            // Xóa token cũ của user
-//            verificationTokenRepository.deleteAllByUser(user);
-//
-//            // Set email mới và đánh dấu chưa verify
-//            user.setEmail(req.getEmail());
-//            user.setEmailVerified(false);
-//
-//            // Tạo token mới
-//            var token = TokenUtil.generateVerificationToken(user);
-//            verificationTokenRepository.save(token);
-//
-//            // Gửi mail verify
-//            String link = "http://localhost:8080/api/auth/verify?token=" + token.getToken();
-//            String html = mailService.buildVerifyEmail(user, link);
-//
-//            mailService.sendMail(
-//                    user.getEmail(),
-//                    "Verify your new email",
-//                    html,
-//                    null
-//            );
-//        }
-//
-//        // 5. Save user
-//        userRepository.save(user);
-//
-//        // 6. Tạo response
-//        UpdateProfileRespone res = new UpdateProfileRespone();
-//        res.setUsername(user.getUsername());
-//        res.setDisplayName(user.getDisplayName());
-//        res.setEmail(user.getEmail());
-//        res.setAvatarURL(user.getAvatarURL());
-//
-//        return res;
-//    }
 
     @Override
     public UpdateProfileRespone updateProfile(UpdateProfileRequest req, MultipartFile avatar) {
@@ -193,10 +123,6 @@ public class UserServiceImpl implements UserService {
         return res;
 
 
-
-
-
-
     }
 
     @Override
@@ -254,17 +180,8 @@ public class UserServiceImpl implements UserService {
 
         String subject = "[User Feedback] From " + user.getUsername();
 
-        String content = """
-            <h3>Feedback from user</h3>
-            <p><b>Username:</b> %s</p>
-            <p><b>Email:</b> %s</p>
-            <p><b>Message:</b></p>
-            <p>%s</p>
-            """.formatted(
-                user.getUsername(),
-                user.getEmail(),
-                req.getMessage()
-        );
+        String html = mailService.buildFeedbackEmail(username,user.getEmail(), req.getMessage());
+
 
         // mail cố định
         String adminMail = "foxgcute@gmail.com";
@@ -272,8 +189,8 @@ public class UserServiceImpl implements UserService {
         mailService.sendMail(
                 adminMail,
                 subject,
-                content,
-                null  // nếu bạn muốn gửi file thì tui thêm multipart
+                html,
+                null
         );
     }
 
@@ -345,6 +262,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<SearchUserResponse> searchUsers(String keyword) {
+        if(keyword == null || keyword.isEmpty()) {
+            throw new BadRequestException("Search users cannot be empty");
+        }
         String currentUsername = SecurityContextHolder
                 .getContext()
                 .getAuthentication()

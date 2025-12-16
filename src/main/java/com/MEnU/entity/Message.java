@@ -6,8 +6,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "messages")
-@Data
+@Table(
+        name = "messages",
+        indexes = {
+                @Index(
+                        name = "idx_chat_pair_created",
+                        columnList = "sender_id, receiver_id, created_at DESC"
+                ),
+                @Index(
+                        name = "idx_receiver_seen",
+                        columnList = "receiver_id, seen"
+                )
+        }
+)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Message extends AbstractEntity {
@@ -26,6 +37,15 @@ public class Message extends AbstractEntity {
     @Column(name = "photo_id")
     private Long photoId;// lưu ID ảnh mà user comment vào
 
+    private Boolean seen = false;
+
+    public Boolean getSeen() {
+        return seen;
+    }
+
+    public void setSeen(Boolean seen) {
+        this.seen = seen;
+    }
 
     public User getSender() {
         return sender;

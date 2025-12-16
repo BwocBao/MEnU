@@ -2,17 +2,18 @@ package com.MEnU.service.Impl;
 
 import com.MEnU.dto.request.CommentRequest;
 import com.MEnU.dto.response.MessageResponse;
+import com.MEnU.dto.response.PhotoReactionResponse;
 import com.MEnU.entity.Message;
 import com.MEnU.entity.Photo;
+import com.MEnU.entity.Reaction;
 import com.MEnU.entity.User;
 import com.MEnU.exception.BadRequestException;
 import com.MEnU.exception.UnauthorizedException;
 import com.MEnU.repository.MessageRepository;
 import com.MEnU.repository.PhotoRepository;
-import com.MEnU.service.AuthService;
-import com.MEnU.service.CloudinaryService;
-import com.MEnU.service.FriendService;
-import com.MEnU.service.PhotoService;
+import com.MEnU.repository.ReactionRepository;
+import com.MEnU.repository.UserRepository;
+import com.MEnU.service.*;
 import com.MEnU.websocket.WebSocketHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -23,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,9 @@ public class PhotoServiceImpl implements PhotoService {
     private final AuthService authService;
     private final FriendService friendService;
     private final MessageRepository messageRepository;
-    private final ObjectMapper objectMapper=new ObjectMapper();
+    private final ObjectMapper objectMapper;
+    private final RealtimeService  realtimeService;
+    private final ReactionRepository  reactionRepository;
 
     @Override
     @Transactional
@@ -53,6 +56,20 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
+    public Photo getTopPhoto() {
+
+        User currentUser = authService.getCurrentUser();
+
+        // danh sách user được phép thấy (bạn + chính mình)
+        List<Long> visibleUserIds =
+                friendService.getVisibleUserIds(currentUser.getId());
+
+        return photoRepository
+                .findTopByOwnerIdInOrderByCreatedAtDesc(visibleUserIds)
+                .orElse(null); // chưa có bài nào
+    }
+
+    @Override
     public Photo move(User viewer, Long currentPhotoId, String direction) {
         Photo current = photoRepository.findById(currentPhotoId)
                 .orElseThrow(() -> new RuntimeException("Photo not found"));
@@ -60,15 +77,29 @@ public class PhotoServiceImpl implements PhotoService {
         // Lấy danh sách ID của viewer + bạn bè
         List<Long> visibleUserIds = friendService.getVisibleUserIds(viewer.getId());
 
-        if (direction.equals("up")) {
-            return photoRepository.findTopByOwnerIdInAndCreatedAtGreaterThanOrderByCreatedAtAsc(
-                    visibleUserIds, current.getCreatedAt()
+
+        if ("up".equals(direction)) {
+            return photoRepository.moveUp(
+                    visibleUserIds,
+                    current.getCreatedAt(),
+                    current.getId()
             ).orElse(null);
         } else {
-            return photoRepository.findTopByOwnerIdInAndCreatedAtLessThanOrderByCreatedAtDesc(
-                    visibleUserIds, current.getCreatedAt()
+            return photoRepository.moveDown(
+                    visibleUserIds,
+                    current.getCreatedAt(),
+                    current.getId()
             ).orElse(null);
         }
+//        if (direction.equals("up")) {
+//            return photoRepository.findTopByOwnerIdInAndCreatedAtGreaterThanOrderByCreatedAtAsc(
+//                    visibleUserIds, current.getCreatedAt()
+//            ).orElse(null);
+//        } else {
+//            return photoRepository.findTopByOwnerIdInAndCreatedAtLessThanOrderByCreatedAtDesc(
+//                    visibleUserIds, current.getCreatedAt()
+//            ).orElse(null);
+//        }
     }
 
     @Override
@@ -143,12 +174,58 @@ public class PhotoServiceImpl implements PhotoService {
 
         try {
             String json = objectMapper.writeValueAsString(res);
-            WebSocketHandler.sendToUser(receiver.getUsername(), json);
+            realtimeService.sendToAUser(receiver.getUsername(), json);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send realtime message");
         }
     }
 
+    @Override
+    public Photo getAPhoto(Long photoId) {
+        Photo photo= photoRepository.findById(photoId)
+                .orElseThrow(() -> new BadRequestException("Photo not found"));
+        return photo;
+    }
+
+    @Override
+    public List<PhotoReactionResponse> getReactionPhoto(Long photoId) {
+
+        List<Reaction> reactions =
+                reactionRepository.findAllByPhotoId(photoId);
+
+        // Map<userId, Set<emoji>>
+        Map<Long, Set<String>> map = new HashMap<>();
+
+        for (Reaction r : reactions) {
+
+            Long userId = r.getUser().getId();
+            String emoji = r.getEmoji();
+
+            map.computeIfAbsent(userId, k -> new HashSet<>())//Nếu chưa có key → tạo value mới
+                    .add(emoji);// Nếu đã có key → lấy value hiện có và add value vào
+        }
+
+//        if (!map.containsKey(userId)) {
+//            map.put(userId, new HashSet<>());
+//        }
+//
+//        map.get(userId).add(emoji);
+
+        // Map → DTO
+        List<PhotoReactionResponse> result = new ArrayList<>();
+
+        for (Map.Entry<Long, Set<String>> entry : map.entrySet()) {
+            result.add(
+                    new PhotoReactionResponse(
+                            entry.getKey(),
+                            photoId,
+                            entry.getValue()
+                    )
+            );
+        }
+
+        return result;
+    }
 
 
 }

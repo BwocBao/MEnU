@@ -13,4 +13,5 @@ public interface MailService {
     );
     String buildVerifyEmail(User user, String link);
     String buildResetPasswordEmail(User user, String link);
+    String buildFeedbackEmail(String username, String email,String message);
 }

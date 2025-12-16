@@ -11,21 +11,39 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
 
-    private static final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
+    private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+
+    public WebSocketHandler(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    public void sendToUser(String username, Object payload) {
+        WebSocketSession s = sessions.get(username);
+
+        if (s != null && s.isOpen()) {
+            try {
+                String json = mapper.writeValueAsString(payload);
+                s.sendMessage(new TextMessage(json));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        String username = (String) session.getAttributes().get("username");
+        String username = (String) session.getAttributes().get("username");//từ HandshakeInterceptor
         if (username != null) {
             sessions.put(username, session);
-            System.out.println("User connected: " + username);
+            System.out.println("User connected: " + username + " At: " + LocalDateTime.now().toString());
         }
     }
 
@@ -35,37 +53,54 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-
-        JsonNode json = mapper.readTree(message.getPayload());
-        String type = json.get("type").asText();
-
-        switch (type) {
-            case "chat": {
-                MessageResponse msg = mapper.treeToValue(json, MessageResponse.class);
-                sendToUser(msg.getToUsername(), msg);
-                break;
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) {//message là gói tin WebSocket
+        try {
+//            Ví dụ client gửi:
+//            {
+//                "type": "chat",
+//                    "content": "hello",
+//                    "toUsername": "alice"
+//            }
+//            Thì:message.getPayload()
+//            là: "{\"type\":\"chat\",\"content\":\"hello\",\"toUsername\":\"alice\"}"
+//            Nó chỉ là STRING, chưa phải JSON object.
+//            ObjectMapper.readTree() làm gì?
+//            ObjectMapper mapper = new ObjectMapper();
+//            JsonNode json = mapper.readTree(String);
+//            Nó parse String JSON → JsonNode Không cần map vào class ngay Rất linh hoạt
+//            Sau khi parse xong, bạn có thể:
+//            json.get("type").asText();
+//            json.get("content").asText();
+//            json.get("toUsername").asText();
+            JsonNode json = mapper.readTree(message.getPayload());//message.getPayload() trả về String
+            String type = json.path("type").asText(null);
+            if (type == null) {
+                System.out.println("Invalid message: missing type");
+                return;
             }
 
-            case "comment":
-            case "reaction":
-            case "friend": {
-                NotificationResponse notif = mapper.treeToValue(json, NotificationResponse.class);
-                sendToUser(notif.getToUsername(), notif);
-                break;
-            }
+            switch (type) {
+                case "chat": {
+                    MessageResponse msg = mapper.treeToValue(json, MessageResponse.class);
+                    sendToUser(msg.getToUsername(), msg);
+                    break;
+                }
 
-            default:
-                System.out.println("Unknown realtime type: " + type);
+                case "comment":
+                case "reaction":
+                case "friend": {
+                    NotificationResponse notif = mapper.treeToValue(json, NotificationResponse.class);
+                    sendToUser(notif.getToUsername(), notif);
+                    break;
+                }
+
+                default:
+                    System.out.println("Unknown realtime type: " + type);
+            }
+        } catch (Exception e) {
+            //Không cho exception làm rớt socket
+            e.printStackTrace();
         }
     }
 
-    public static void sendToUser(String username, Object payload) throws IOException {
-
-        WebSocketSession s = sessions.get(username);
-
-        if (s != null && s.isOpen()) {
-            s.sendMessage(new TextMessage(mapper.writeValueAsString(payload)));
-        }
-    }
 }

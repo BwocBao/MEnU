@@ -11,6 +11,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -25,16 +26,35 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                                    ServerHttpResponse response,
                                    WebSocketHandler handler,
                                    Map<String, Object> attributes) {
+        String token = null;
 
-        URI uri = request.getURI();
-        String query = uri.getQuery();
-
-        if (query == null || !query.startsWith("token=")) {
-            return false;
+        // 1. Header
+        List<String> authHeaders = request.getHeaders().get("Authorization");
+        if (authHeaders != null && !authHeaders.isEmpty()) {
+            String h = authHeaders.get(0);
+            if (h.startsWith("Bearer ")) {
+                token = h.substring(7);
+            }
         }
 
-        String token = query.substring("token=".length());
-        String username = jwtService.extractUsernameFromAccess(token);
+        // 2. Query fallback
+        if (token == null) {
+            String query = request.getURI().getQuery();
+            if (query != null && query.startsWith("token=")) {
+                token = query.substring(6);
+            }
+        }
+
+        if (token == null) return false;
+
+
+
+        String username;
+        try {
+            username = jwtService.extractUsernameFromAccess(token);
+        } catch (Exception e) {
+            return false;
+        }
 
         UserDetails userDetails =
                 userDetailsService.loadUserByUsername(username);
@@ -43,7 +63,6 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             return false;
         }
 
-        // Đính username vào session
         attributes.put("username", username);
         return true;
     }

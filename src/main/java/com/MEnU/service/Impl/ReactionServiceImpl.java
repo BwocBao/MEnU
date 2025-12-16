@@ -74,7 +74,7 @@ public class ReactionServiceImpl implements ReactionService {
             response.setType("reaction");
 
             // Gửi realtime
-            realtimeService.sendNotificationToUser(
+            realtimeService.sendToAUser(
                     photo.getOwner().getUsername(),
                     response
             );
@@ -107,7 +107,7 @@ public class ReactionServiceImpl implements ReactionService {
             NotificationResponse response = NotificationMapper.toResponse(n);
             response.setType("reaction");
 
-            realtimeService.sendNotificationToUser(
+            realtimeService.sendToAUser(
                     friend.getUsername(),
                     response
             );

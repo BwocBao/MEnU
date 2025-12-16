@@ -1,7 +1,13 @@
 package com.MEnU.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChangePasswordRequest {
     @NotBlank(message = "OldPassword must not be blank")
     private String oldPassword;
@@ -10,33 +16,4 @@ public class ChangePasswordRequest {
     @NotBlank(message = "ConfirmNewPassword must not be blank")
     private String confirmNewPassword;
 
-    public ChangePasswordRequest(String oldPassword, String confirmNewPassword, String newPassword) {
-        this.oldPassword = oldPassword;
-        this.confirmNewPassword = confirmNewPassword;
-        this.newPassword = newPassword;
-    }
-
-    public String getOldPassword() {
-        return oldPassword;
-    }
-
-    public void setOldPassword(String oldPassword) {
-        this.oldPassword = oldPassword;
-    }
-
-    public String getNewPassword() {
-        return newPassword;
-    }
-
-    public void setNewPassword(String newPassword) {
-        this.newPassword = newPassword;
-    }
-
-    public String getConfirmNewPassword() {
-        return confirmNewPassword;
-    }
-
-    public void setConfirmNewPassword(String confirmNewPassword) {
-        this.confirmNewPassword = confirmNewPassword;
-    }
 }

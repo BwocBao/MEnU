@@ -1,17 +1,12 @@
 package com.MEnU.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChangePasswordResponse {
     private String username;
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public ChangePasswordResponse(String username) {
-        this.username = username;
-    }
 }

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Feedback</title>
+</head>
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f4f6f8;
+        padding: 20px;
+    }
+    .container {
+        max-width: 600px;
+        margin: auto;
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .title {
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+    }
+    .info p {
+        margin: 6px 0;
+        color: #333;
+    }
+    .message {
+        margin-top: 15px;
+        padding: 15px;
+        background: #f9f9f9;
+        border-left: 4px solid #3498db;
+        white-space: pre-line;
+    }
+    .footer {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #888;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h2 class="title">User Feedback</h2>
+
+    <div class="info">
+        <p><b>Username:</b> <span th:text="${username}"></span></p>
+        <p><b>Email:</b> <span th:text="${email}"></span></p>
+    </div>
+
+    <div class="message">
+        <b>Feedback:</b><span th:utext="${mess}"></span><br/>
+    </div>
+
+    <div class="footer">
+        This email was generated automatically from the system.
+    </div>
+</div>
+</body>
+</html>
