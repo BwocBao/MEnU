@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: menu
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./menu.sql:/docker-entrypoint-initdb.d/menu.sql
+    ports:
+      - "3306:3306"
+
+  backend:
+    image: bwocbao/menu-backend:1.0
+    container_name: backend
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/menu
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+volumes:
+  mysql_data:
